@@ -1,0 +1,29 @@
+# Sobe a API com PostgreSQL:  docker compose up --build
+# Documentação da API: http://localhost:8000/docs
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ubs_facil
+      POSTGRES_USER: ubs
+      POSTGRES_PASSWORD: ubs_dev_senha
+    volumes:
+      - dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ubs -d ubs_facil"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://ubs:ubs_dev_senha@db:5432/ubs_facil
+      JWT_SECRET: troque-este-segredo-antes-de-publicar-0123456789
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  dados:
